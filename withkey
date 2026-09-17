@@ -57,7 +57,7 @@ KeyTab:CreateButton({
          })
 
          -- Load your script
-         loadstring(game:HttpGet("https://raw.githubusercontent.com/babyalien0u/TarantulaHub/refs/heads/main/TarantulaHub%22))()"))()
+         loadstring(game:HttpGet("https://raw.githubusercontent.com/babyalien0u/TarantulaHub/refs/heads/main/RideApetEsp"))()
       else
 
          Rayfield:Notify({
