@@ -3,11 +3,11 @@ local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 -- Create Window
 local Window = Rayfield:CreateWindow({
    Name = "DrewHub",
-   LoadingTitle = "DrewHub",
+   LoadingTitle = "TarantulaHub",
    LoadingSubtitle = "by Drew",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "DrewHub",
+      FolderName = "Tarantula",
       FileName = "Settings"
    }
 })
