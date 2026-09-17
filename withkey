@@ -3,11 +3,11 @@ local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 -- Create Window
 local Window = Rayfield:CreateWindow({
    Name = "DrewHub",
-   LoadingTitle = "DrewHub",
+   LoadingTitle = "TarantulaHub",
    LoadingSubtitle = "by Drew",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "DrewHub",
+      FolderName = "TarantulaHub",
       FileName = "Settings"
    }
 })
@@ -15,7 +15,7 @@ local Window = Rayfield:CreateWindow({
 -- Key Tab
 local KeyTab = Window:CreateTab("Key System", 4483362458)
 
-local correctKey = "<p style="text-align:left;"><u>drewnagwapo</u></p>"
+local correctKey = "hello"
 local enteredKey = ""
 
 -- Input Key
