@@ -3,11 +3,11 @@ local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
 -- Create Window
 local Window = Rayfield:CreateWindow({
    Name = "DrewHub",
-   LoadingTitle = "TarantulaHub",
+   LoadingTitle = "DrewHub",
    LoadingSubtitle = "by Drew",
    ConfigurationSaving = {
       Enabled = true,
-      FolderName = "Tarantula",
+      FolderName = "DrewHub",
       FileName = "Settings"
    }
 })
@@ -57,7 +57,7 @@ KeyTab:CreateButton({
          })
 
          -- Load your script
-         loadstring(game:HttpGet("https://raw.githubusercontent.com/babyalien0u/TarantulaHub/refs/heads/main/RideApetEsp"))()
+         loadstring(game:HttpGet("https://raw.githubusercontent.com/babyalien0u/TarantulaHub/refs/heads/main/TarantulaHub%22))()"))()
       else
 
          Rayfield:Notify({
