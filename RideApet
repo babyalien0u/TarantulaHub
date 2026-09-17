@@ -1,0 +1,541 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+local Players = game:GetService("Players")
+local Workspace = game:GetService("Workspace")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+
+local Player = Players.LocalPlayer
+
+--==================================================
+-- WINDOW
+--==================================================
+
+local Window = Rayfield:CreateWindow({
+    Name = "Egg",
+    LoadingTitle = "Egg",
+    LoadingSubtitle = "Egg Finder",
+
+    ConfigurationSaving = {
+        Enabled = false
+    },
+
+    Discord = {
+        Enabled = false
+    }
+})
+
+local Main = Window:CreateTab("Eggs")
+
+--==================================================
+-- EGG ESP
+--==================================================
+
+local Enabled = false
+local ESPObjects = {}
+
+local EggColors = {
+    ["Admin Egg"]       = Color3.fromRGB(255, 40, 40),
+    ["Asteroid Egg"]    = Color3.fromRGB(140, 140, 140),
+    ["Aurora Egg"]      = Color3.fromRGB(0, 255, 200),
+    ["Blackhole Egg"]   = Color3.fromRGB(120, 0, 255),
+    ["Brown Egg"]       = Color3.fromRGB(150, 80, 30),
+    ["Cracked Egg"]     = Color3.fromRGB(210, 210, 210),
+    ["Crystal Egg"]     = Color3.fromRGB(0, 220, 255),
+    ["Devil Fruit Egg"] = Color3.fromRGB(255, 60, 60),
+    ["Diamond Egg"]     = Color3.fromRGB(80, 220, 255),
+    ["Dominus Egg"]     = Color3.fromRGB(70, 70, 70),
+    ["Dragon Egg"]      = Color3.fromRGB(255, 100, 0),
+    ["Easter Egg"]      = Color3.fromRGB(255, 100, 190),
+    ["Flaming Egg"]     = Color3.fromRGB(255, 60, 0),
+    ["Flower Egg"]      = Color3.fromRGB(255, 80, 220),
+    ["Galaxy Egg"]      = Color3.fromRGB(130, 50, 255),
+    ["Giant Egg"]       = Color3.fromRGB(255, 220, 40),
+    ["Glass Egg"]       = Color3.fromRGB(170, 240, 255),
+    ["Golden Egg"]      = Color3.fromRGB(255, 200, 0),
+    ["Ice Egg"]         = Color3.fromRGB(80, 180, 255),
+    ["Leaf Egg"]        = Color3.fromRGB(50, 220, 80),
+    ["Mushroom Egg"]    = Color3.fromRGB(220, 60, 100),
+    ["Sinister Egg"]    = Color3.fromRGB(180, 0, 0),
+    ["Skull Egg"]       = Color3.fromRGB(245, 245, 245),
+    ["Slime Egg"]       = Color3.fromRGB(70, 255, 70),
+    ["Soul Egg"]        = Color3.fromRGB(180, 80, 255),
+    ["Stone Egg"]       = Color3.fromRGB(120, 120, 120),
+    ["White Egg"]       = Color3.fromRGB(255, 255, 255),
+    ["Cherub Egg"]      = Color3.fromRGB(255, 150, 220)
+}
+
+local DefaultColor = Color3.fromRGB(0, 255, 0)
+
+--==================================================
+-- BLACKLIST SELECTION
+-- TEXT ONLY
+--==================================================
+
+local BlacklistedEggs = {}
+
+local EggList = {}
+
+for EggName in pairs(EggColors) do
+    table.insert(EggList, EggName)
+end
+
+table.sort(EggList)
+
+Main:CreateDropdown({
+    Name = "Blacklist Egg Text",
+    Options = EggList,
+    CurrentOption = {},
+    MultipleOptions = true,
+    Flag = "BlacklistEggText",
+
+    Callback = function(Selected)
+
+        BlacklistedEggs = {}
+
+        for _, EggName in ipairs(Selected) do
+            BlacklistedEggs[string.lower(EggName)] = true
+        end
+
+        if Enabled then
+            RefreshESP()
+        end
+    end
+})
+
+--==================================================
+-- EGG FUNCTIONS
+--==================================================
+
+local function GetEggColor(object)
+    return EggColors[object.Name] or DefaultColor
+end
+
+local function IsEgg(object)
+    return string.find(
+        string.lower(object.Name),
+        "egg"
+    ) ~= nil
+end
+
+local function IsPlantedEgg(object)
+
+    local ancestor = object.Parent
+
+    while ancestor and ancestor ~= Workspace do
+
+        if string.find(
+            string.lower(ancestor.Name),
+            "spawn"
+        ) then
+            return true
+        end
+
+        ancestor = ancestor.Parent
+    end
+
+    return false
+end
+
+local function GetEggAdornee(object)
+
+    if object:IsA("Model") then
+        return object
+    end
+
+    if object:IsA("BasePart") then
+        return object
+    end
+
+    if object:IsA("Tool") then
+
+        local handle =
+            object:FindFirstChild("Handle")
+
+        if handle then
+            return handle
+        end
+
+        local model =
+            object:FindFirstChildWhichIsA(
+                "Model",
+                true
+            )
+
+        if model then
+            return model
+        end
+
+        return object:FindFirstChildWhichIsA(
+            "BasePart",
+            true
+        )
+    end
+
+    return object:FindFirstChildWhichIsA(
+        "Model",
+        true
+    )
+    or object:FindFirstChildWhichIsA(
+        "BasePart",
+        true
+    )
+end
+
+--==================================================
+-- ESP HELPERS
+--==================================================
+
+local function IsDescendantOfTracked(object)
+
+    for adornee in pairs(ESPObjects) do
+
+        if adornee ~= object
+            and object:IsDescendantOf(adornee)
+        then
+            return true
+        end
+
+    end
+
+    return false
+end
+
+local function ClearDescendantsOf(object)
+
+    for adornee, data in pairs(ESPObjects) do
+
+        if adornee ~= object
+            and adornee:IsDescendantOf(object)
+        then
+
+            if data.Highlight then
+                data.Highlight:Destroy()
+            end
+
+            if data.Billboard then
+                data.Billboard:Destroy()
+            end
+
+            ESPObjects[adornee] = nil
+        end
+
+    end
+end
+
+local function ClearESP()
+
+    for adornee, data in pairs(ESPObjects) do
+
+        if data.Highlight then
+            data.Highlight:Destroy()
+        end
+
+        if data.Billboard then
+            data.Billboard:Destroy()
+        end
+
+        ESPObjects[adornee] = nil
+    end
+end
+
+--==================================================
+-- ADD EGG ESP
+--==================================================
+
+local function AddEgg(object)
+
+    if not Enabled then
+        return
+    end
+
+    if not object:IsDescendantOf(Workspace) then
+        return
+    end
+
+    if not IsEgg(object) then
+        return
+    end
+
+    if IsPlantedEgg(object) then
+        return
+    end
+
+    local adornee = GetEggAdornee(object)
+
+    if not adornee then
+        return
+    end
+
+    if IsDescendantOfTracked(adornee) then
+        return
+    end
+
+    ClearDescendantsOf(adornee)
+
+    if ESPObjects[adornee] then
+        return
+    end
+
+    local color = GetEggColor(object)
+
+    --==================================================
+    -- HIGHLIGHT
+    -- ALWAYS VISIBLE
+    -- EVEN IF TEXT IS BLACKLISTED
+    --==================================================
+
+    local highlight = Instance.new("Highlight")
+
+    highlight.Name = "EggHighlight"
+    highlight.Adornee = adornee
+    highlight.FillTransparency = 1
+    highlight.OutlineTransparency = 0
+    highlight.OutlineColor = color
+    highlight.DepthMode =
+        Enum.HighlightDepthMode.AlwaysOnTop
+
+    highlight.Parent = Workspace
+
+    --==================================================
+    -- TEXT
+    -- HIDDEN IF BLACKLISTED
+    --==================================================
+
+    local nameLower = string.lower(object.Name)
+
+    local IsBlacklisted =
+        BlacklistedEggs[nameLower] == true
+
+    local billboard = nil
+
+    if not IsBlacklisted then
+
+        billboard = Instance.new("BillboardGui")
+
+        billboard.Name = "EggName"
+        billboard.Adornee = adornee
+        billboard.Size =
+            UDim2.new(0, 160, 0, 50)
+
+        billboard.StudsOffset =
+            Vector3.new(0, 3.5, 0)
+
+        billboard.AlwaysOnTop = true
+
+        local label =
+            Instance.new("TextLabel")
+
+        label.Parent = billboard
+        label.Size =
+            UDim2.new(1, 0, 1, 0)
+
+        label.BackgroundTransparency = 1
+
+        -- ORIGINAL EGG NAME
+        label.Text = object.Name
+
+        label.TextColor3 = color
+        label.TextScaled = true
+        label.Font =
+            Enum.Font.SourceSansBold
+
+        local stroke =
+            Instance.new("UIStroke")
+
+        stroke.Thickness = 2
+        stroke.Color =
+            Color3.fromRGB(0, 0, 0)
+
+        stroke.Parent = label
+
+        billboard.Parent = Workspace
+    end
+
+    ESPObjects[adornee] = {
+        Highlight = highlight,
+        Billboard = billboard
+    }
+end
+
+--==================================================
+-- REFRESH ESP
+--==================================================
+
+function RefreshESP()
+
+    ClearESP()
+
+    if not Enabled then
+        return
+    end
+
+    for _, object in pairs(
+        Workspace:GetDescendants()
+    ) do
+        AddEgg(object)
+    end
+end
+
+--==================================================
+-- ESP TOGGLE
+--==================================================
+
+Main:CreateToggle({
+    Name = "nil",
+    CurrentValue = false,
+    Flag = "EggESP_Toggle",
+
+    Callback = function(Value)
+
+        Enabled = Value
+        RefreshESP()
+
+    end
+})
+
+--==================================================
+-- SMOOTH TP WALK
+--==================================================
+
+local TPWalkEnabled = false
+local TPWalkDistance = 50
+
+Main:CreateSlider({
+    Name = "TP Walk Distance",
+
+    Range = {1, 150},
+    Increment = 1,
+
+    Suffix = " studs",
+
+    CurrentValue = 50,
+
+    Flag = "TPWalkDistance",
+
+    Callback = function(Value)
+        TPWalkDistance = Value
+    end
+})
+
+Main:CreateToggle({
+    Name = "TP Walk",
+
+    CurrentValue = false,
+
+    Flag = "TPWalk",
+
+    Callback = function(Value)
+        TPWalkEnabled = Value
+    end
+})
+
+RunService.Heartbeat:Connect(
+    function(deltaTime)
+
+        if not TPWalkEnabled then
+            return
+        end
+
+        local Character =
+            Player.Character
+
+        local Humanoid =
+            Character
+            and Character:FindFirstChildOfClass(
+                "Humanoid"
+            )
+
+        local Root =
+            Character
+            and Character:FindFirstChild(
+                "HumanoidRootPart"
+            )
+
+        if not Humanoid or not Root then
+            return
+        end
+
+        local Direction =
+            Humanoid.MoveDirection
+
+        if Direction.Magnitude > 0 then
+
+            local Movement =
+                TPWalkDistance * deltaTime
+
+            Root.CFrame =
+                Root.CFrame
+                + Direction * Movement
+        end
+    end
+)
+
+--==================================================
+-- INFINITE JUMP
+--==================================================
+
+local InfiniteJumpEnabled = false
+
+Main:CreateToggle({
+    Name = "Infinite Jump",
+
+    CurrentValue = false,
+
+    Flag = "InfiniteJump",
+
+    Callback = function(Value)
+        InfiniteJumpEnabled = Value
+    end
+})
+
+UserInputService.JumpRequest:Connect(
+    function()
+
+        if not InfiniteJumpEnabled then
+            return
+        end
+
+        local Character =
+            Player.Character
+
+        local Humanoid =
+            Character
+            and Character:FindFirstChildOfClass(
+                "Humanoid"
+            )
+
+        if Humanoid then
+
+            Humanoid:ChangeState(
+                Enum.HumanoidStateType.Jumping
+            )
+        end
+    end
+)
+
+--==================================================
+-- NEW EGGS
+--==================================================
+
+Workspace.DescendantAdded:Connect(
+    function(object)
+
+        if Enabled then
+
+            task.wait(0.1)
+
+            AddEgg(object)
+        end
+    end
+)
+
+--==================================================
+-- CLEANUP
+--==================================================
+
+Player.CharacterRemoving:Connect(
+    function()
+        ClearESP()
+    end
+)
