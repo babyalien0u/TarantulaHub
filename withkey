@@ -1,0 +1,71 @@
+local Rayfield = loadstring(game:HttpGet("https://sirius.menu/rayfield"))()
+
+-- Create Window
+local Window = Rayfield:CreateWindow({
+   Name = "DrewHub",
+   LoadingTitle = "DrewHub",
+   LoadingSubtitle = "by Drew",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "DrewHub",
+      FileName = "Settings"
+   }
+})
+
+-- Key Tab
+local KeyTab = Window:CreateTab("Key System", 4483362458)
+
+local correctKey = "<p style="text-align:left;"><u>drewnagwapo</u></p>"
+local enteredKey = ""
+
+-- Input Key
+KeyTab:CreateInput({
+   Name = "Enter Key",
+   PlaceholderText = "Put your key here",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+      enteredKey = Text
+   end,
+})
+
+-- Copy Discord Link
+KeyTab:CreateButton({
+   Name = "Copy Link To Get Key",
+   Callback = function()
+      if setclipboard then
+         setclipboard("https://discord.gg/XW5NyfwrqE")
+      end
+
+      Rayfield:Notify({
+         Title = "Discord",
+         Content = "Discord link copied to clipboard!",
+         Duration = 4
+      })
+   end,
+})
+
+-- Submit Key
+KeyTab:CreateButton({
+   Name = "Submit Key",
+   Callback = function()
+      if enteredKey == correctKey then
+
+         Rayfield:Notify({
+            Title = "Success",
+            Content = "Key accepted! Loading script...",
+            Duration = 4
+         })
+
+         -- Load your script
+         loadstring(game:HttpGet("https://raw.githubusercontent.com/babyalien0u/Drewhub/refs/heads/main/RIdeAPetobuse"))()
+      else
+
+         Rayfield:Notify({
+            Title = "Error",
+            Content = "Invalid Key!",
+            Duration = 4
+         })
+
+      end
+   end,
+})
